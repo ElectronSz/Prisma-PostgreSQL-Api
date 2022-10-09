@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+
+}
+
+model User {
+  id            Int            @id @default(autoincrement())
+  email         String         @unique @db.VarChar(200)
+  name          String?
+  password      String         @db.VarChar(150)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  active        Boolean        @default(true)
+  posts         Post[]
+  profile       Profile?       @relation(fields: [profileId], references: [id])
+  profileId     Int?
+  refreshTokens RefreshToken[]
+}
+
+model RefreshToken {
+  id          String   @id @unique @default(uuid())
+  hashedToken String
+  userId      Int
+  User        User     @relation(fields: [userId], references: [id])
+  revoked     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Profile {
+  id         Int          @id @default(autoincrement())
+  name       String       @unique @db.VarChar(150)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  active     Boolean      @default(true)
+  permission Permission[]
+  user       User[]
+}
+
+model Post {
+  id        Int      @id @default(autoincrement())
+  published Boolean? @default(false)
+  title     String   @db.VarChar(150)
+  content   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  active    Boolean  @default(true)
+  author    User?    @relation(fields: [authorId], references: [id])
+  authorId  Int?
+
+}
+
+model Permission {
+  id        Int      @id @default(autoincrement())
+  resource  String?  @db.VarChar(200)
+  role      String?  @db.VarChar(8)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  active    Boolean  @default(true)
+  profile   Profile? @relation(fields: [profileId], references: [id])
+  profileId Int?
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
